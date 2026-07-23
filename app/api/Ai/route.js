@@ -6,6 +6,8 @@ import { buildIntentPrompt } from "@/lib/promptManager";
 
 import { processConversation } from "@/lib/conversationOrchestrator";
 
+await dbConnect();
+
 export async function POST(request) {
 
     try {
