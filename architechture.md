@@ -131,3 +131,18 @@ voicebank-ai/
 │
 │
 └── middleware.js
+
+
+## Work on these right now (DAY 1)
+
+Navbar ✅ (Done)
+
+Hero
+
+MicButton
+
+VoiceStatus
+
+ConversationTimeline
+
+TimelineStep
