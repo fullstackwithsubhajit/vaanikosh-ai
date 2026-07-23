@@ -9,7 +9,7 @@ export async function POST(request) {
     const {
       conversation,
       amount,
-      isNewReceiver,
+      isNewRecipient,
       transactionTime,
     } = body;
 
@@ -36,7 +36,7 @@ export async function POST(request) {
     const risk = await evaluateRisk({
       conversation,
       amount,
-      isNewReceiver,
+      isNewRecipient,
       transactionTime: transactionTime
         ? new Date(transactionTime)
         : new Date(),

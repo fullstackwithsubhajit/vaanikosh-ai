@@ -1,67 +1,94 @@
 import mongoose from "mongoose";
 
-const messageSchema = new mongoose.Schema({
+const messageSchema = new mongoose.Schema(
+  {
+    speaker: {
+      type: String,
+      enum: ["USER", "AI"],
+      required: true,
+    },
 
-speaker:{
-type:String,
-enum:["USER","AI"],
-required:true
-},
+    content: {
+      type: String,
+      required: true,
+    },
 
-content:{
-type:String,
-required:true
-},
+    timestamp: {
+      type: Date,
+      default: Date.now,
+    },
+  },
+  { _id: false }
+);
 
-intent:{
-type:String,
-default:""
-},
+const conversationSchema = new mongoose.Schema(
+  {
+    user: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
+    },
 
-timestamp:{
-type:Date,
-default:Date.now
-}
+    language: {
+      type: String,
+      default: "en",
+    },
 
-});
+    status: {
+      type: String,
+      enum: ["ACTIVE", "COMPLETED", "CANCELLED"],
+      default: "ACTIVE",
+    },
 
-const conversationSchema = new mongoose.Schema({
+    messages: [messageSchema],
 
-user:{
-type:mongoose.Schema.Types.ObjectId,
-ref:"User",
-required:true
-},
+    state: {
+      currentIntent: {
+        type: String,
+        default: null,
+      },
 
-language:{
-type:String,
-default:"en"
-},
+      collectedEntities: {
+        recipient: {
+          type: String,
+          default: null,
+        },
 
-status:{
-type:String,
-enum:[
-"ACTIVE",
-"COMPLETED"
-],
-default:"ACTIVE"
-},
+        amount: {
+          type: Number,
+          default: null,
+        },
 
-messages:[
-messageSchema
-]
+        purpose: {
+          type: String,
+          default: "",
+        },
+      },
 
-},
-{
-timestamps:true
-}
+      waitingFor: {
+        type: String,
+        default: null,
+      },
+
+      nextAction: {
+        type: String,
+        default: null,
+      },
+
+      completed: {
+        type: Boolean,
+        default: false,
+      },
+    },
+  },
+  {
+    timestamps: true,
+  }
 );
 
 const Conversation =
-mongoose.models.Conversation ||
-mongoose.model(
-"Conversation",
-conversationSchema
-);
+  mongoose.models.Conversation ||
+  mongoose.model("Conversation", conversationSchema);
 
 export default Conversation;
