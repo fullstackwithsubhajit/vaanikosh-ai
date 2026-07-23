@@ -25,6 +25,16 @@ const Navbar = () => {
                     />
 
                 </div>
+                <div>
+                    <Image
+                    src="/icons/language.svg"
+                    width={32}
+                    height={32}
+                    alt='language svg'
+                    className='invert cursor-pointer'
+                    />
+
+                </div>
                 <div className='relative cursor-pointer'>
                     <Image 
                         src="/images/user.webp"

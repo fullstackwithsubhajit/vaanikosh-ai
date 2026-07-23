@@ -1,24 +1,35 @@
-import React from 'react'
-import MicButton from '../voice/MicButton'
+"use client"
 
-const Hero = () => {
+import React from "react";
+import MicButton from "../voice/MicButton";
+import VoiceWave from "../voice/VoiceWave";
+import VoiceStatus from "../voice/VoiceStatus";
+
+const  Hero = () => {
+  const voiceStatus = "ready";
+
+  const handleMicClick = () => {
+    console.log("Mic clicked");
+  };
+
   return (
-    <>
-      <div className='flex justify-center gap-4 items-center flex-col'>
-        <div className='flex justify-center items-center py-12 ' >
-          <h2 className='text-center m-auto text-4xl font-semibold'>How can I help you today, <br /> Subhajit</h2>
-        </div>
+    <section className="flex flex-col items-center justify-center gap-6 py-16">
+      <h2 className="text-center text-4xl font-semibold">
+        How can I help you today,
+        {/* <br />
+        Subhajit? */}
+      </h2>
 
+      <MicButton
+        status={voiceStatus}
+        onClick={handleMicClick}
+      />
 
-        <div>
-          <MicButton/>
-        </div>
-        <div>
-          <p className='py-12'>Tap to speak.</p>
-        </div>
-      </div>
-    </>   
-  )
-}
+      <VoiceWave status={voiceStatus} />
 
-export default Hero
+      <VoiceStatus status={voiceStatus} />
+    </section>
+  );
+};
+
+export default Hero;
