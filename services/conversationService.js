@@ -119,10 +119,94 @@ export async function completeConversation(
   return await Conversation.findByIdAndUpdate(
     conversationId,
     {
-      status: "COMPLETED",
+      endedAt:new Date(),
     },
     {
       new: true,
     }
   );
+}
+
+
+export async function updateEntities(
+conversationId,
+entities
+){
+
+return await Conversation.findByIdAndUpdate(
+
+conversationId,
+
+{
+
+$set:{
+
+"state.collectedEntities":entities
+
+}
+
+},
+
+{
+
+new:true
+
+}
+
+);
+
+}
+
+export async function markWaitingFor(
+
+conversationId,
+
+field
+
+){
+
+return await Conversation.findByIdAndUpdate(
+
+conversationId,
+
+{
+
+$set:{
+
+"state.waitingFor":field
+
+}
+
+},
+
+{
+
+new:true
+
+}
+
+);
+
+}
+
+export async function resumeConversation(
+
+userId
+
+){
+
+return await Conversation.findOne({
+
+user:userId,
+
+status:"ACTIVE"
+
+})
+
+.sort({
+
+updatedAt:-1
+
+});
+
 }
