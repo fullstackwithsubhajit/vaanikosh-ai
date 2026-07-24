@@ -2,8 +2,29 @@
 
 import { motion } from "framer-motion";
 import { CircleCheckBig, ArrowUpRight } from "lucide-react";
+import { useEffect } from "react";
 
 export default function SuccessCard({ data }) {
+
+
+ useEffect(() => {
+    const utterance = new SpeechSynthesisUtterance(
+      `Payment of ₹${data.amount} to ${data.recipient} completed successfully.`
+    );
+
+    utterance.rate = 1;
+    utterance.pitch = 1;
+    utterance.volume = 1;
+
+    speechSynthesis.cancel(); // Stop any previous speech
+    speechSynthesis.speak(utterance);
+
+    return () => {
+      speechSynthesis.cancel();
+    };
+  }, [data.amount, data.recipient]);
+
+
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.96, y: 20 }}
@@ -29,6 +50,8 @@ export default function SuccessCard({ data }) {
           </p>
         </div>
       </div>
+
+      <hr className="my-5 border-emerald-500/20" />
 
       <div className="mt-6 space-y-3 rounded-2xl bg-slate-900 p-5">
         <div className="flex justify-between">
@@ -66,6 +89,23 @@ export default function SuccessCard({ data }) {
           Transaction recorded successfully.
         </p>
       </div>
+
+      <div className="flex justify-between border-t border-slate-800 pt-3">
+    <span className="text-slate-400">
+       Remaining Balance
+    </span>
+
+    <span className="font-semibold text-emerald-400">
+      ₹{data.balance}
+    </span>
+      </div>
+
+      <button
+  onClick={onDone}
+  className="mt-6 w-full rounded-xl bg-emerald-500 py-3 font-semibold text-black transition hover:bg-emerald-400"
+>
+  Done
+</button>
     </motion.div>
   );
 }
