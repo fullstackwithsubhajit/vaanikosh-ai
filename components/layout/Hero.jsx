@@ -1,35 +1,45 @@
-"use client"
+"use client";
 
-import React from "react";
+import { useEffect } from "react";
+
 import MicButton from "../voice/MicButton";
 import VoiceWave from "../voice/VoiceWave";
 import VoiceStatus from "../voice/VoiceStatus";
 
-const  Hero = () => {
-  const voiceStatus = "ready";
+export default function Hero({ speech, sendMessage }) {
+  const {
+    status,
+    transcript,
+    startListening,
+    resetTranscript,
+  } = speech;
 
-  const handleMicClick = () => {
-    console.log("Mic clicked");
-  };
+  useEffect(() => {
+    if (!transcript) return;
+
+    const sendTranscript = async () => {
+      await sendMessage(transcript);
+      console.log("Transcript fired:", transcript);
+      resetTranscript();
+    };
+
+    sendTranscript();
+  }, [transcript, sendMessage, resetTranscript]);
 
   return (
     <section className="flex flex-col items-center justify-center gap-6 py-16">
-      <h2 className="text-center text-4xl font-semibold">
-        How can I help you today,
-        {/* <br />
-        Subhajit? */}
+      <h2 className="text-center text-4xl font-semibold text-white">
+        How can I help you today?
       </h2>
 
       <MicButton
-        status={voiceStatus}
-        onClick={handleMicClick}
+        status={status}
+        onClick={startListening}
       />
 
-      <VoiceWave status={voiceStatus} />
+      <VoiceWave status={status} />
 
-      <VoiceStatus status={voiceStatus} />
+      <VoiceStatus status={status} />
     </section>
   );
-};
-
-export default Hero;
+}
