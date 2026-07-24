@@ -1,8 +1,6 @@
-// app/api/ai/route.js
-
 import { NextResponse } from "next/server";
 
-import dbConnect from "@/lib/db";
+import dbConnect from "@/lib/dbConnect";
 
 import { processAI } from "@/services/aiService";
 
@@ -14,9 +12,14 @@ export async function POST(request) {
 
     const {
       userId,
-      message,
-      language = "English",
       conversationId = null,
+      message = "",
+      language = "English",
+
+      // Frontend interaction events
+      selectedRecipientId = null,
+      confirmed = false,
+      authentication = null,
     } = body;
 
     if (!userId) {
@@ -25,29 +28,18 @@ export async function POST(request) {
           success: false,
           message: "User ID is required.",
         },
-        {
-          status: 400,
-        }
-      );
-    }
-
-    if (!message) {
-      return NextResponse.json(
-        {
-          success: false,
-          message: "Message is required.",
-        },
-        {
-          status: 400,
-        }
+        { status: 400 }
       );
     }
 
     const result = await processAI({
       userId,
+      conversationId,
       message,
       language,
-      conversationId,
+      selectedRecipientId,
+      confirmed,
+      authentication,
     });
 
     return NextResponse.json(result);
