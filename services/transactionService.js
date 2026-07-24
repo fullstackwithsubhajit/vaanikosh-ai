@@ -84,21 +84,6 @@ function checkBalance(sender, amount) {
 }
 
 
-function generateReference() {
-
-    return "VB" +
-
-        Date.now() +
-
-        Math.floor(
-
-            Math.random() * 10000
-
-        );
-
-}
-
-
 async function deductBalance(sender, amount) {
 
     sender.wallet.balance -= amount;
