@@ -3,43 +3,39 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 
 import {
-  evaluateRisk,
-} from "@/lib/riskEngine";
+  getTransactionHistory,
+} from "@/services/historyService";
 
 export async function POST(request) {
   try {
-
     await dbConnect();
 
     const body = await request.json();
 
     const {
-      conversation,
-      amount,
-      isNewRecipient,
-      transactionTime,
+      userId,
+      filters = {},
     } = body;
 
-    const risk =
-      await evaluateRisk({
+    if (!userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "User ID is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
 
-        conversation,
+    const history =
+      await getTransactionHistory(
+        userId,
+        filters
+      );
 
-        amount,
-
-        isNewRecipient,
-
-        transactionTime,
-
-      });
-
-    return NextResponse.json({
-
-      success: true,
-
-      risk,
-
-    });
+    return NextResponse.json(history);
 
   } catch (error) {
 

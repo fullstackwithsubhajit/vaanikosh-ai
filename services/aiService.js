@@ -84,16 +84,18 @@ export async function processAI({
     Gemini Call #1
     --------------------------------
     */
+    const aiResponse = await extractIntent(
+        message,
+        language
+    );
+
     const validation = validateIntent(aiResponse);
 
     if (!validation.valid) {
-
         throw new Error("Invalid AI response.");
-
     }
 
     const intent = validation.data;
-
     
 
     /*
@@ -106,7 +108,7 @@ export async function processAI({
 
         conversation.state,
 
-        aiResponse
+        intent
 
     );
 
@@ -126,7 +128,7 @@ export async function processAI({
 
     const workflow = determineNextAction(
         updatedState,
-        aiResponse
+        intent
     );
 
     /*

@@ -286,3 +286,96 @@ export async function markTrusted(
 }
 
 
+export async function searchRecipients(userId, searchText) {
+
+    if (!searchText) {
+        throw new Error("Recipient name is required.");
+    }
+
+    const recipients = await Recipient.find({
+
+        owner: userId,
+
+        $or: [
+
+            {
+                name: {
+                    $regex: new RegExp(searchText, "i")
+                }
+            },
+
+            {
+                nickname: {
+                    $regex: new RegExp(searchText, "i")
+                }
+            },
+
+            {
+                upiId: {
+                    $regex: new RegExp(searchText, "i")
+                }
+            }
+
+        ]
+
+    }).sort({
+
+        transactionCount: -1,
+
+        isFavourite: -1
+
+    });
+
+    return recipients;
+}
+
+
+export function buildRecipientSelection(recipients) {
+
+    return {
+
+        success: true,
+
+        action: "SELECT_RECIPIENT",
+
+        data: {
+
+            options: recipients.map(recipient => ({
+
+                id: recipient._id,
+
+                name: recipient.name,
+
+                bank: recipient.bankName,
+
+                previousTransactions:
+                    recipient.transactionCount
+
+            }))
+
+        }
+
+    };
+
+}
+
+
+export async function selectRecipient(userId, recipientId) {
+
+    const recipient = await Recipient.findOne({
+
+        _id: recipientId,
+
+        owner: userId
+
+    });
+
+    if (!recipient) {
+
+        throw new Error("Recipient not found.");
+
+    }
+
+    return recipient;
+
+}

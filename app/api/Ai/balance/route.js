@@ -3,8 +3,8 @@ import { NextResponse } from "next/server";
 import dbConnect from "@/lib/dbConnect";
 
 import {
-  evaluateRisk,
-} from "@/lib/riskEngine";
+  getBalance,
+} from "@/services/balanceService";
 
 export async function POST(request) {
   try {
@@ -13,32 +13,26 @@ export async function POST(request) {
 
     const body = await request.json();
 
-    const {
-      conversation,
-      amount,
-      isNewRecipient,
-      transactionTime,
-    } = body;
+    const { userId } = body;
 
-    const risk =
-      await evaluateRisk({
+    if (!userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "User ID is required.",
+        },
+        {
+          status: 400,
+        }
+      );
+    }
 
-        conversation,
-
-        amount,
-
-        isNewRecipient,
-
-        transactionTime,
-
-      });
+    const balance =
+      await getBalance(userId);
 
     return NextResponse.json({
-
       success: true,
-
-      risk,
-
+      balance,
     });
 
   } catch (error) {
