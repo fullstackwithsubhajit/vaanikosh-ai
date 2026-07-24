@@ -1,8 +1,22 @@
 "use client";
 
 import ConversationItem from "./ConversationItem";
+import { useEffect, useRef } from "react";
 
 export default function ConversationFeed({ conversation = [] }) {
+
+  const bottomRef = useRef(null);
+
+  useEffect(() => {
+
+    bottomRef.current?.scrollIntoView({
+
+        behavior:"smooth"
+
+    });
+
+},[conversation]);
+
   return (
     <section className="w-full max-w-4xl mx-auto px-6 py-8">
       <div className="flex flex-col gap-5">
@@ -21,7 +35,8 @@ export default function ConversationFeed({ conversation = [] }) {
             />
           ))
         )}
-
+        
+        <div ref={bottomRef}/>
       </div>
     </section>
   );
