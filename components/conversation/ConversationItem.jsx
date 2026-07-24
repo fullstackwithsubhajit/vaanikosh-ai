@@ -7,9 +7,10 @@ import RiskCard from "../transaction/RiskCard";
 import TransactionSummary from "../transaction/TransactionSummary";
 import AuthenticationCard from "../transaction/AuthenticationCard";
 import RecipientSelectionCard from "../transaction/RecipientSelectionCard";
-// import BalanceCard from "../transaction/BalanceCard";
-// import ScamWarningCard from "../transaction/ScamWarningCard";
+import BalanceCard from "../transaction/BalanceCard";
+import HistoryCard from "../transaction/HistoryCard";
 import SuccessCard from "../transaction/SuccessCard";
+// import ScamWarningCard from "../transaction/ScamWarningCard";
 
 export default function ConversationItem({ item }) {
 
@@ -21,8 +22,11 @@ export default function ConversationItem({ item }) {
         case "assistant":
             return <AssistantBubble data={item.data} />;
 
-        // case "balance":
-        //     return <BalanceCard data={item.data} />;
+        case "balance":
+            return <BalanceCard data={item.data} />;
+
+        case "history":
+            return <HistoryCard data={item.data} />;
 
         case "summary":
             return <TransactionSummary data={item.data} />;

@@ -22,19 +22,24 @@ export default function Hero({ speech, sendMessage, speak }) {
 
     // Temporary Demo
 
-      speak("Processing your request.");
+      // speak("Processing your request.");
 
-//       if(response?.ai?.reply){
+      // Actual response
+if (response?.conversation) {
+ const assistant = [...response.conversation]
+  .reverse()
+  .find((item) => item.type === "assistant");
 
-//     speak(response.ai.reply);
-
-// }
+  if (assistant) {
+    speak(assistant.data.text);
+  }
+}
       console.log("Transcript fired:", transcript);
       resetTranscript();
     };
 
     sendTranscript();
-  }, [transcript, sendMessage, resetTranscript]);
+  }, [transcript, sendMessage, resetTranscript, speak]);
 
   return (
     <section className="flex flex-col items-center justify-center gap-6 py-16">

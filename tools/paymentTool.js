@@ -1,24 +1,44 @@
 // tools/paymentTool.js
 
-import { processPayment } from "@/services/transactionService";
+import {
+  previewPayment,
+  processPayment,
+} from "@/services/transactionService";
 
-/**
- * Payment Tool
- * Called by Tool Dispatcher.
- * No business logic here.
- */
 export async function paymentTool({
+  action = "PREVIEW_PAYMENT",
+
   userId,
   recipient,
   amount,
   purpose = "",
   transcript = "",
 }) {
-  return await processPayment({
-    userId,
-    recipient,
-    amount,
-    purpose,
-    transcript,
-  });
+
+  switch (action) {
+
+    case "PREVIEW_PAYMENT":
+      return await previewPayment({
+        userId,
+        recipient,
+        amount,
+        purpose,
+        transcript,
+      });
+
+    case "CONFIRM_PAYMENT":
+      return await processPayment({
+        userId,
+        recipient,
+        amount,
+        purpose,
+        transcript,
+      });
+
+    default:
+      return {
+        success: false,
+        message: "Unknown payment action.",
+      };
+  }
 }

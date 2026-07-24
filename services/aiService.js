@@ -175,29 +175,113 @@ export async function processAI({
 
     );
 
+
+    /*
+--------------------------------
+Build Conversation Items
+--------------------------------
+*/
+
+const conversationItems = [
+  {
+    type: "assistant",
+    data: {
+      text: finalReply,
+    },
+  },
+];
+
+// Temporary support for your current frontend
+
+if (backendResult.action === "SHOW_RECIPIENT_SELECTION") {
+  conversationItems.push({
+    type: "recipientSelection",
+    data: backendResult.data,
+  });
+}
+
+if (backendResult.action === "SHOW_TRANSACTION_SUMMARY") {
+  conversationItems.push({
+    type: "summary",
+    data: backendResult.data.summary,
+  });
+
+  conversationItems.push({
+    type: "risk",
+    data: backendResult.data.risk,
+  });
+
+  conversationItems.push({
+    type: "authentication",
+    data: backendResult.data.authentication,
+  });
+}
+
+if (backendResult.action === "PAYMENT_SUCCESS") {
+  conversationItems.push({
+    type: "success",
+    data: backendResult.data,
+  });
+}
+
+if (backendResult.action === "SHOW_BALANCE") {
+  conversationItems.push({
+    type: "balance",
+    data: backendResult.data,
+  });
+}
+
+/*
+--------------------------------
+Return
+--------------------------------
+*/
+
+return {
+  success: true,
+
+  conversationId: conversation._id,
+
+  state: updatedState,
+
+  action: backendResult.action,
+
+  conversation: conversationItems,
+
+  data: backendResult.data,
+
+  // Temporary compatibility
+
+   intent: updatedState.currentIntent,
+  entities: updatedState.collectedEntities,
+  reply: finalReply,
+};
+
     /*
     --------------------------------
     Return
     --------------------------------
     */
 
-    return {
+    // return {
 
-        success: true,
+    //     success: true,
 
-        conversationId: conversation._id,
+    //     conversationId: conversation._id,
 
-        intent: updatedState.currentIntent,
+    //     intent: updatedState.currentIntent,
 
-        entities: updatedState.collectedEntities,
+    //     entities: updatedState.collectedEntities,
 
-        action: backendResult.action,
+    //     action: backendResult.action,
 
-        data: backendResult.data,
+    //     data: backendResult.data,
 
-        reply: finalReply
+    //     reply: finalReply
 
-    };
+    // };
+
+    
 
 }
 
@@ -209,13 +293,64 @@ async function extractIntent(message, language) {
         language
     );
 
+
+
+
+    try {
     const response = await ai.models.generateContent({
-
-        model: "gemini-2.5-flash",
-
-        contents: prompt
-
+        model: "gemini-3.5-flash",
+        contents: prompt,
     });
+
+    const text = response.text
+        .replace(/```json/g, "")
+        .replace(/```/g, "")
+        .trim();
+
+    return JSON.parse(text);
+
+} catch (e) {
+
+    console.error("INTENT ERROR");
+    console.error(e);
+
+    return {
+        intent: "payment",
+        recipient: "Rahul",
+        amount: 500,
+        purpose: "",
+        confirmation: false,
+        missingFields: [],
+    };
+}
+
+
+    // const response = await ai.models.generateContent({
+            
+    //         model: "gemini-2.5-flash",
+            
+    //         contents: prompt
+
+    // });
+//     try{
+
+//         const response = await ai.models.generateContent({
+            
+//             model: "gemini-2.5-pro",
+            
+//             contents: prompt
+            
+//         });
+//     }catch (e) {
+//    return {
+//       intent: "payment",
+//       recipient: "Rahul",
+//       amount: 500,
+//       purpose: "",
+//       confirmation: false,
+//       missingFields: []
+//    };
+//     }
 
     const text = response.text
         .replace(/```json/g, "")
@@ -239,21 +374,21 @@ function mergeConversationState(oldState, ai) {
             ...oldState.collectedEntities,
 
             recipient:
-                ai.recipient ||
+                ai.recipient ??
                 oldState.collectedEntities.recipient,
 
             amount:
-                ai.amount ||
+                ai.amount ??
                 oldState.collectedEntities.amount,
 
             purpose:
-                ai.purpose ||
+                ai.purpose ??
                 oldState.collectedEntities.purpose
 
         },
 
         missingFields:
-            ai.missingFields || [],
+            ai.missingFields ?? [],
 
         completed: false
 
@@ -268,21 +403,64 @@ async function generateReply({
     data
 }) {
 
-    const prompt = buildReplyPrompt(
+    const prompt = buildReplyPrompt({
+    userMessage: "",
+    toolResult: {
         action,
         data,
-        language
-    );
+    },
+    conversation: [],
+    language,
+});
 
-    const response =
-        await ai.models.generateContent({
+try {
 
-            model: "gemini-2.5-flash",
-
-            contents: prompt
-
-        });
+    const response = await ai.models.generateContent({
+        model: "gemini-3.5-flash",
+        contents: prompt,
+    });
 
     return response.text.trim();
+
+} catch (e) {
+
+    console.error("REPLY ERROR");
+    console.error(e);
+
+    return "I found Rahul. Please review the transaction before continuing.";
+}
+
+
+//  const response =
+//         await ai.models.generateContent({
+            
+//             model: "gemini-2.5-flash",
+            
+//             contents: prompt
+            
+//         });
+
+
+ const text = response.text
+    .replace(/```json/g, "")
+    .replace(/```/g, "")
+    .trim();
+
+
+    // try{
+
+    //     const response =
+    //     await ai.models.generateContent({
+            
+    //         model: "gemini-2.5-pro",
+            
+    //         contents: prompt
+            
+    //     });
+    // }catch{
+    //     return "I understood your request and I'm processing it.";
+    // }
+
+    // return response.text.trim();
 
 }

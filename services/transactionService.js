@@ -24,8 +24,12 @@ crypto.randomUUID()
 
 
 async function findSender(userId) {
+    console.log("Looking for user:", userId);
 
     const sender = await User.findById(userId);
+
+    console.log("Sender found:");
+    console.log(sender);
 
     if (!sender) {
         throw new Error("Sender not found.");
@@ -33,7 +37,6 @@ async function findSender(userId) {
 
     return sender;
 }
-
 async function findRecipient(userId, recipientName) {
 
     const recipient = await Recipient.findOne({
@@ -68,6 +71,10 @@ async function findRecipient(userId, recipientName) {
 
 }
 
+
+// console.log("statistics =", sender.statistics);
+
+
 function checkBalance(sender, amount) {
 
     if (amount <= 0) {
@@ -76,18 +83,24 @@ function checkBalance(sender, amount) {
 
     }
 
-    if (sender.wallet.balance < amount) {
+    console.log("WalletBalance:", sender.statistics?.WalletBalance);
 
-        throw new Error("Insufficient balance.");
+    // if (sender.wallet.balance < amount) {
 
-    }
+    //     throw new Error("Insufficient balance.");
 
+    // }
+    if (sender.statistics.walletBalance < amount) {
+    throw new Error("Insufficient balance.");
+}
 }
 
 
 async function deductBalance(sender, amount) {
 
-    sender.wallet.balance -= amount;
+    // sender.wallet.balance -= amount;
+
+    sender.statistics.walletBalance -= amount;
 
     await sender.save();
 
@@ -154,10 +167,14 @@ async function createTransaction({
 
 async function updateRecipient(recipient) {
 
-    recipient.transactionCount += 1;
+    // recipient.transactionCount += 1;
 
-    recipient.lastUsed = new Date();
+    // recipient.lastUsed = new Date();
 
+    // await recipient.save();
+    
+    recipient.totalTransactions += 1;
+    recipient.lastPaidAt = new Date();
     await recipient.save();
 
 }
@@ -180,6 +197,54 @@ export async function getRecentRecipients(userId){
 
 }
 
+export async function previewPayment({
+    userId,
+    recipient,
+    amount,
+    purpose = "",
+    transcript = "",
+}) {
+    const sender = await findSender(userId);
+
+    console.log("Sender statistics:", sender.statistics);
+
+    const savedRecipient = await findRecipient(
+        userId,
+        recipient
+    );
+
+    checkBalance(sender, amount);
+
+    const risk = await evaluateRisk({
+        conversation: transcript,
+        amount,
+        isNewRecipient: !savedRecipient.isTrusted,
+        transactionTime: new Date(),
+    });
+
+    return {
+        success: true,
+        action: "SHOW_TRANSACTION_SUMMARY",
+
+        data: {
+            summary: {
+                recipient: savedRecipient.name,
+                amount,
+                bank: savedRecipient.bankName,
+                note: purpose,
+            },
+
+            risk,
+
+            authentication: {
+                amount,
+                method: "UPI PIN",
+            },
+
+            recipientId: savedRecipient._id,
+        },
+    };
+}
 
 export async function processPayment({
 
@@ -194,6 +259,8 @@ export async function processPayment({
 }) {
 
     const sender = await findSender(userId);
+
+    console.log("Sender statistics:", sender.statistics);
 
     const savedRecipient = await findRecipient(
 
@@ -301,11 +368,14 @@ export async function processPayment({
 
         },
 
+        // remainingBalance:
+
+        //     sender.wallet.balance,
+        
         remainingBalance:
+            sender.statistics.walletBalance,
 
-            sender.wallet.balance,
-
-        risk
+            risk
 
     };
 

@@ -124,7 +124,7 @@ statistics: {
   },
 
 
-  WalletBalance: {
+  walletBalance: {
     type: Number,
     default: 0,
 

@@ -1,21 +1,21 @@
 import { NextResponse } from "next/server";
 
-import dbConnect from "@/lib/dbConnect";
+// import dbConnect from "@/lib/dbConnect";
+import connectDB from "@/lib/db";
 
 import {
-  getTransactionHistory,
-} from "@/services/historyService";
+  getBalance,
+} from "@/services/balanceService";
 
 export async function POST(request) {
   try {
-    await dbConnect();
+
+    // await dbConnect();
+    await connectDB();
 
     const body = await request.json();
 
-    const {
-      userId,
-      filters = {},
-    } = body;
+    const { userId } = body;
 
     if (!userId) {
       return NextResponse.json(
@@ -29,13 +29,13 @@ export async function POST(request) {
       );
     }
 
-    const history =
-      await getTransactionHistory(
-        userId,
-        filters
-      );
+    const balance =
+      await getBalance(userId);
 
-    return NextResponse.json(history);
+    return NextResponse.json({
+      success: true,
+      balance,
+    });
 
   } catch (error) {
 
