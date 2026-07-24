@@ -9,21 +9,25 @@ import {
   processConversation,
 } from "@/lib/conversationOrchestrator";
 
+
 import {
-  getActiveConversation,
-  createConversation,
-  addMessage,
-  updateConversationState,
-} from "@/services/conversationService";
+  processPayment,
+} from "./transactionService";
 
-import paymentService from "@/services/paymentService";
-import coachService from "@/services/coachService";
 
-import User from "@/models/User";
 
-async function handlePayment(userId, state) {
 
-    return await paymentService.processPayment({
+import {
+    getConversation,
+    getActiveConversation,
+    createConversation,
+    addMessage,
+    updateConversationState,
+} from "./conversationService";
+
+async function processPayment(userId, state) {
+
+    return await processPayment({
 
         userId,
 
@@ -111,6 +115,8 @@ export async function processAI({
         conversation
 
     });
+
+    
 
     /*
     --------------------------------

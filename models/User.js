@@ -20,9 +20,16 @@ const UserSchema = new mongoose.Schema({
     required: true,
   },
 
+  firebaseUid: {
+    type: String,
+    required: true,
+    unique: true,
+    index: true
+  },
+
     preferredLanguage: {
    type: String,
-  enum: [
+    enum: [
     "English",
     "Hindi",
     "Bengali",
@@ -115,6 +122,19 @@ statistics: {
     type: Number,
     default: 0,
   },
+
+
+  WalletBalance: {
+    type: Number,
+    default: 0,
+
+  },
+
+  currency: {
+    type: String,
+    default: "INR"
+    },
+
 },
 
 });
