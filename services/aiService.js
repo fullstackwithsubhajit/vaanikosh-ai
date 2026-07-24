@@ -5,34 +5,21 @@ import {
   buildReplyPrompt,
 } from "@/lib/promptManager";
 
-import {
-    determineNextAction,
-} from "@/lib/conversationOrchestrator";
+import { validateIntent } from "@/lib/intentValidator";
 
+import { determineNextAction } from "@/lib/conversationOrchestrator";
 
-import {
-    processPayment as executePaymentService,
-} from "./transactionService";
-
-
-
+import { dispatchAction } from "@/lib/toolDispatcher";
 
 import {
-    getConversation,
-    getActiveConversation,
-    createConversation,
-    addMessage,
-    updateConversationState,
+  getConversation,
+  getActiveConversation,
+  createConversation,
+  addMessage,
+  updateConversationState,
 } from "./conversationService";
 
-async function executePayment(userId, state) {
-    return await executePaymentService({
-        userId,
-        recipient: state.collectedEntities.recipient,
-        amount: state.collectedEntities.amount,
-        purpose: state.collectedEntities.purpose
-    });
-}
+
 
 export async function processAI({
 
@@ -209,5 +196,91 @@ export async function processAI({
         reply: finalReply
 
     };
+
+}
+
+
+async function extractIntent(message, language) {
+
+    const prompt = buildIntentPrompt(
+        message,
+        language
+    );
+
+    const response = await ai.models.generateContent({
+
+        model: "gemini-2.5-flash",
+
+        contents: prompt
+
+    });
+
+    const text = response.text
+        .replace(/```json/g, "")
+        .replace(/```/g, "")
+        .trim();
+
+    return JSON.parse(text);
+
+}
+
+function mergeConversationState(oldState, ai) {
+
+    return {
+
+        ...oldState,
+
+        currentIntent: ai.intent,
+
+        collectedEntities: {
+
+            ...oldState.collectedEntities,
+
+            recipient:
+                ai.recipient ||
+                oldState.collectedEntities.recipient,
+
+            amount:
+                ai.amount ||
+                oldState.collectedEntities.amount,
+
+            purpose:
+                ai.purpose ||
+                oldState.collectedEntities.purpose
+
+        },
+
+        missingFields:
+            ai.missingFields || [],
+
+        completed: false
+
+    };
+
+}
+
+
+async function generateReply({
+    language,
+    action,
+    data
+}) {
+
+    const prompt = buildReplyPrompt(
+        action,
+        data,
+        language
+    );
+
+    const response =
+        await ai.models.generateContent({
+
+            model: "gemini-2.5-flash",
+
+            contents: prompt
+
+        });
+
+    return response.text.trim();
 
 }
