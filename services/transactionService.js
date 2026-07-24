@@ -3,6 +3,7 @@ import Recipient from "@/models/Recipient";
 import Transaction from "@/models/Transaction";
 
 import { evaluateRisk } from "@/lib/riskEngine";
+import * as balanceService from "./balanceService";
 
 
 import crypto from "crypto";
@@ -161,6 +162,24 @@ async function updateRecipient(recipient) {
 
 }
 
+export async function getRecentRecipients(userId){
+
+    return await Recipient.find({
+
+        owner:userId
+
+    })
+
+    .sort({
+
+        lastUsed:-1
+
+    })
+
+    .limit(5);
+
+}
+
 
 export async function processPayment({
 
@@ -289,5 +308,16 @@ export async function processPayment({
         risk
 
     };
+
+
+    await balanceService.debit(
+    sender._id,
+    amount
+    );
+
+    await balanceService.updateWalletStats(
+        sender._id,
+        amount
+    );
 
 }

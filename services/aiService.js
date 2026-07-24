@@ -6,12 +6,12 @@ import {
 } from "@/lib/promptManager";
 
 import {
-  processConversation,
+    determineNextAction,
 } from "@/lib/conversationOrchestrator";
 
 
 import {
-  processPayment,
+    processPayment as executePaymentService,
 } from "./transactionService";
 
 
@@ -25,22 +25,14 @@ import {
     updateConversationState,
 } from "./conversationService";
 
-async function processPayment(userId, state) {
-
-    return await processPayment({
-
+async function executePayment(userId, state) {
+    return await executePaymentService({
         userId,
-
         recipient: state.collectedEntities.recipient,
-
         amount: state.collectedEntities.amount,
-
         purpose: state.collectedEntities.purpose
-
     });
-
 }
-
 
 export async function processAI({
 
@@ -105,16 +97,15 @@ export async function processAI({
     Gemini Call #1
     --------------------------------
     */
+    const validation = validateIntent(aiResponse);
 
-    const aiResponse = await extractIntent({
+    if (!validation.valid) {
 
-        message,
+        throw new Error("Invalid AI response.");
 
-        language,
+    }
 
-        conversation
-
-    });
+    const intent = validation.data;
 
     
 
@@ -146,7 +137,10 @@ export async function processAI({
     --------------------------------
     */
 
-    const workflow = processConversation(aiResponse);
+    const workflow = determineNextAction(
+        updatedState,
+        aiResponse
+    );
 
     /*
     --------------------------------
@@ -154,15 +148,11 @@ export async function processAI({
     --------------------------------
     */
 
-    const backendResult = await executeIntent({
-
-        userId,
-
-        state: updatedState,
-
-        workflow
-
-    });
+    const backendResult = await dispatchAction(
+        workflow.action,
+        workflow.payload,
+        userId
+    );
 
     /*
     --------------------------------
