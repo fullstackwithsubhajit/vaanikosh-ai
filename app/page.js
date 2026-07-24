@@ -1,7 +1,12 @@
+"use client"
+
 import Hero from "@/components/layout/Hero";
 import Navbar from "@/components/layout/Navbar";
 import Image from "next/image";
 import ConversationFeed from "@/components/conversation/ConversationFeed";
+import useConversation from "@/hooks/useConversation";
+import useSpeechRecognition from "@/hooks/useSpeechRecognition";
+
 
 const demoConversation = [
   {
@@ -54,12 +59,22 @@ const demoConversation = [
 }
 ];
 export default function Home() {
-  return (
-   <>
-   
-   <Navbar/>
-   <Hero/>
-  <ConversationFeed conversation={demoConversation} />
-   </>
-  );
+
+ const conversation = useConversation();
+const speech = useSpeechRecognition();
+
+return (
+  <>
+    <Navbar />
+
+    <Hero
+      speech={speech}
+      sendMessage={conversation.sendMessage}
+    />
+
+    <ConversationFeed
+      conversation={conversation.conversation}
+    />
+  </>
+);
 }

@@ -87,23 +87,7 @@ export default function AuthenticationCard({ data = {} }) {
       {/* Button */}
 
       <button
-        className="
-          mt-8
-          flex
-          w-full
-          items-center
-          justify-center
-          gap-3
-          rounded-2xl
-          bg-sky-500
-          px-6
-          py-4
-          font-semibold
-          text-slate-950
-          transition-all
-          duration-300
-          hover:bg-sky-400
-          active:scale-[0.98]
+        className="mt-8 flex w-full items-center justify-center gap-3 rounded-2xl bg-sky-500 px-6 py-4 font-semibold text-slate-950 transition-all duration-300 hover:bg-sky-400 active:scale-[0.98]
         "
       >
         Authenticate & Pay

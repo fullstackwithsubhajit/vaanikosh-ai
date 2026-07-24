@@ -1,16 +1,16 @@
 "use client";
 
 import { useState } from "react";
+import { useCallback } from "react";
 
 export default function useConversation() {
   const [conversation, setConversation] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const sendMessage = async (message) => {
+  const sendMessage = useCallback(async (message)  => {
     if (!message.trim()) return;
 
-    // Add user's message immediately
     const userMessage = {
       id: crypto.randomUUID(),
       type: "user",
@@ -25,35 +25,55 @@ export default function useConversation() {
     setError(null);
 
     try {
-      const res = await fetch("/api/ai", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
+      // ---------- TEMPORARY MOCK ----------
+      // Replace this whole block with fetch("/api/ai")
+      // when your friend's backend is ready.
+
+      await new Promise((resolve) => setTimeout(resolve, 1000));
+
+      const mockResponse = [
+        {
+          id: crypto.randomUUID(),
+          type: "assistant",
+          data: {
+            text: `I understood that you want to ${message}.`,
+          },
         },
-        body: JSON.stringify({
-          message,
-          language: "en",
-        }),
-      });
-
-      const result = await res.json();
-
-      console.log("AI Response:", result);
-
-      // Temporary until backend is finished
-      const assistantMessage = {
-        id: crypto.randomUUID(),
-        type: "assistant",
-        data: {
-          text: result?.ai?.reply || "No response received.",
+        {
+          id: crypto.randomUUID(),
+          type: "summary",
+          data: {
+            recipient: "Rahul Sharma",
+            amount: 500,
+            bank: "HDFC Bank",
+            note: "Demo Payment",
+          },
         },
-      };
+        {
+          id: crypto.randomUUID(),
+          type: "risk",
+          data: {
+            score: 12,
+            checks: [
+              "Known recipient",
+              "Trusted device",
+              "Location verified",
+            ],
+          },
+        },
+        {
+          id: crypto.randomUUID(),
+          type: "authentication",
+          data: {
+            amount: 500,
+            method: "UPI PIN",
+          },
+        },
+      ];
 
-      setConversation((prev) => [
-        ...prev,
-        assistantMessage,
-      ]);
+      setConversation((prev) => [...prev, ...mockResponse]);
 
+      // ---------- END MOCK ----------
     } catch (err) {
       console.error(err);
 
@@ -65,14 +85,14 @@ export default function useConversation() {
           id: crypto.randomUUID(),
           type: "assistant",
           data: {
-            text: "Sorry, I couldn't process your request.",
+            text: "Sorry, something went wrong.",
           },
         },
       ]);
     } finally {
       setLoading(false);
     }
-  };
+  },[]);
 
   const clearConversation = () => {
     setConversation([]);
