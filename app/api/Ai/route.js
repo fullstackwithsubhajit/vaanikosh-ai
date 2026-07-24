@@ -1,170 +1,67 @@
+// app/api/ai/route.js
+
 import { NextResponse } from "next/server";
 
-import ai from "@/lib/gemini";
+import dbConnect from "@/lib/db";
 
-import { buildIntentPrompt } from "@/lib/promptManager";
-
-import { processConversation } from "@/lib/conversationOrchestrator";
-
-await dbConnect();
+import { processAI } from "@/services/aiService";
 
 export async function POST(request) {
+  try {
+    await dbConnect();
 
-    try {
+    const body = await request.json();
 
-        const body = await request.json();
+    const {
+      userId,
+      message,
+      language = "English",
+      conversationId = null,
+    } = body;
 
-        const {
-
-            message,
-
-            language = "English"
-
-        } = body;
-
-        // -------------------------
-        // Validation
-        // -------------------------
-
-        if (!message) {
-
-            return NextResponse.json(
-
-                {
-
-                    success: false,
-
-                    message: "Message is required."
-
-                },
-
-                {
-
-                    status: 400
-
-                }
-
-            );
-
+    if (!userId) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "User ID is required.",
+        },
+        {
+          status: 400,
         }
-
-        // -------------------------
-        // Build Prompt
-        // -------------------------
-
-        const prompt = buildIntentPrompt(
-
-            message,
-
-            language
-
-        );
-
-        // -------------------------
-        // Gemini
-        // -------------------------
-
-        const result = await ai.models.generateContent({
-
-            model: "gemini-2.5-flash",
-
-            contents: prompt
-
-        });
-
-        // -------------------------
-        // Gemini Response
-        // -------------------------
-
-        const cleanText = result.text
-          .replace(/```json/g, "")
-          .replace(/```/g, "")
-          .trim();
-
-        const aiResponse = JSON.parse(cleanText);
-
-        try {
-
-            aiResponse = JSON.parse(text);
-
-        }
-
-        catch {
-
-            return NextResponse.json(
-
-                {
-
-                    success: false,
-
-                    message: "Gemini returned invalid JSON.",
-
-                    raw: text
-
-                },
-
-                {
-
-                    status: 500
-
-                }
-
-            );
-
-        }
-
-        // -------------------------
-        // Conversation Engine
-        // -------------------------
-
-        const finalResponse = await processConversation(
-
-            aiResponse
-
-        );
-
-        // -------------------------
-        // Return
-        // -------------------------
-
-        return NextResponse.json(
-
-            {
-
-                success: true,
-
-                ai: aiResponse,
-
-                response: finalResponse
-
-            }
-
-        );
-
+      );
     }
 
-    catch (error) {
-
-        console.error(error);
-
-        return NextResponse.json(
-
-            {
-
-                success: false,
-
-                message: error.message
-
-            },
-
-            {
-
-                status: 500
-
-            }
-
-        );
-
+    if (!message) {
+      return NextResponse.json(
+        {
+          success: false,
+          message: "Message is required.",
+        },
+        {
+          status: 400,
+        }
+      );
     }
 
+    const result = await processAI({
+      userId,
+      message,
+      language,
+      conversationId,
+    });
+
+    return NextResponse.json(result);
+  } catch (error) {
+    console.error("AI Route Error:", error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        message: error.message || "Internal Server Error",
+      },
+      {
+        status: 500,
+      }
+    );
+  }
 }
