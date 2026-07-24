@@ -6,7 +6,7 @@ import MicButton from "../voice/MicButton";
 import VoiceWave from "../voice/VoiceWave";
 import VoiceStatus from "../voice/VoiceStatus";
 
-export default function Hero({ speech, sendMessage }) {
+export default function Hero({ speech, sendMessage, speak }) {
   const {
     status,
     transcript,
@@ -18,7 +18,17 @@ export default function Hero({ speech, sendMessage }) {
     if (!transcript) return;
 
     const sendTranscript = async () => {
-      await sendMessage(transcript);
+      const response = await sendMessage(transcript);
+
+    // Temporary Demo
+
+      speak("Processing your request.");
+
+//       if(response?.ai?.reply){
+
+//     speak(response.ai.reply);
+
+// }
       console.log("Transcript fired:", transcript);
       resetTranscript();
     };

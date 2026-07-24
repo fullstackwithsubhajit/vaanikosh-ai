@@ -9,7 +9,7 @@ export async function findRecipient(userId, searchText) {
 
     }
 
-    const recipient = await Recipient.findOne({
+    const recipient = await Recipient.find({
 
         owner: userId,
 
