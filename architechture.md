@@ -46,7 +46,8 @@ voicebank-ai/
 │   │
 │   ├── conversation/
 │   │
-│   │   ConversationTimeline.jsx
+│   │   ConversationFeed.jsx
+│   │   ConversationItem.jsx
 │   │   TimelineStep.jsx
 │   │   UserBubble.jsx
 │   │   AssistantBubble.jsx
@@ -96,6 +97,7 @@ voicebank-ai/
 │
 ├── lib/
 │
+│   conversationOrchestrator.js
 │   gemini.js
 │   db.js
 │   riskEngine.js
