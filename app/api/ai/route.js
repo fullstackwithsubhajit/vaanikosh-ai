@@ -1,12 +1,13 @@
 import { NextResponse } from "next/server";
 
-import dbConnect from "@/lib/dbConnect";
-
+// import dbConnect from "@/lib/dbConnect";
+import connectDB from "@/lib/db";
 import { processAI } from "@/services/aiService";
 
 export async function POST(request) {
   try {
-    await dbConnect();
+    // await dbConnect();
+    await connectDB();
 
     const body = await request.json();
 
@@ -32,6 +33,9 @@ export async function POST(request) {
       );
     }
 
+    console.log("UserId:", userId);
+    console.log("Length:", userId.length);
+
     const result = await processAI({
       userId,
       conversationId,
@@ -44,7 +48,10 @@ export async function POST(request) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error("AI Route Error:", error);
+    
+    console.error("AI Route Error:");
+    console.error(error);
+    console.error(error.stack);
 
     return NextResponse.json(
       {

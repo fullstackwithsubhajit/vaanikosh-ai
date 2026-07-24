@@ -12,7 +12,7 @@ export async function getBalance(userId) {
     throw new Error("User not found.");
   }
 
-  return user.wallet.balance;
+  return user.statistics.walletBalance;
 }
 
 /**
@@ -29,11 +29,11 @@ export async function credit(userId, amount) {
     throw new Error("User not found.");
   }
 
-  user.wallet.balance += amount;
+  user.statistics.walletBalance += amount;
 
   await user.save();
 
-  return user.wallet.balance;
+  return user.statistics.walletBalance;
 }
 
 /**
@@ -50,15 +50,15 @@ export async function debit(userId, amount) {
     throw new Error("User not found.");
   }
 
-  if (user.wallet.balance < amount) {
+  if (user.statistics.walletBalance < amount) {
     throw new Error("Insufficient balance.");
   }
 
-  user.wallet.balance -= amount;
+  user.statistics.walletBalance -= amount;
 
   await user.save();
 
-  return user.wallet.balance;
+  return user.statistics.walletBalance;
 }
 
 
@@ -73,11 +73,11 @@ export async function debitWithStats(userId, amount) {
     throw new Error("User not found.");
   }
 
-  if (user.wallet.balance < amount) {
+  if (user.statistics.walletBalance < amount) {
     throw new Error("Insufficient balance.");
   }
 
-  user.wallet.balance -= amount;
+  user.statistics.walletBalance -= amount;
 
   if (!user.statistics) {
     user.statistics = {};
@@ -92,7 +92,7 @@ export async function debitWithStats(userId, amount) {
   await user.save();
 
   return {
-    balance: user.wallet.balance,
+    balance: user.statistics.walletBalance,
     statistics: user.statistics,
   };
 }
@@ -114,9 +114,9 @@ export async function validateBalance(userId, amount){
 
     return {
 
-        valid:user.wallet.balance >= amount,
+        valid:user.statistics.walletBalance >= amount,
 
-        balance:user.wallet.balance
+        balance:user.statistics.walletBalance
 
     };
 
@@ -153,7 +153,7 @@ export async function getWalletSummary(userId) {
 
     return {
 
-        balance:user.wallet.balance,
+        balance:user.statistics.walletBalance,
 
         totalSpent:user.statistics.totalSpent,
 

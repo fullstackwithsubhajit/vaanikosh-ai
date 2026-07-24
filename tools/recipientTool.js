@@ -1,8 +1,13 @@
 // tools/recipientTool.js
 
+// import {
+//   searchRecipient,
+//   createRecipient,
+//   getRecipients,
+// } from "@/services/recipientService";
 import {
-  searchRecipient,
-  createRecipient,
+  findRecipient,
+  addRecipient,
   getRecipients,
 } from "@/services/recipientService";
 
@@ -14,10 +19,12 @@ export async function recipientTool({
 }) {
   switch (action) {
     case "SEARCH":
-      return await searchRecipient(userId, recipient);
+      // return await searchRecipient(userId, recipient);
+      return await findRecipient(userId, recipient);
 
     case "CREATE":
-      return await createRecipient(userId, data);
+      // return await createRecipient(userId, data);
+      return await addRecipient(userId, ...data,);
 
     case "LIST":
       return await getRecipients(userId);

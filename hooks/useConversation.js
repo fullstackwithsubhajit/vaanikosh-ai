@@ -8,91 +8,83 @@ export default function useConversation() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  const sendMessage = useCallback(async (message)  => {
-    if (!message.trim()) return;
+  const sendMessage = useCallback(async (message) => {
+  if (!message.trim()) return;
 
-    const userMessage = {
-      id: crypto.randomUUID(),
-      type: "user",
-      data: {
-        text: message,
+  const userMessage = {
+    id: crypto.randomUUID(),
+    type: "user",
+    data: {
+      text: message,
+    },
+  };
+
+  // Show user's message immediately
+  setConversation((prev) => [...prev, userMessage]);
+
+  setLoading(true);
+  setError(null);
+
+  try {
+    const res = await fetch("/api/ai", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
       },
-    };
+      // body: JSON.stringify({
+      //   userId: "demo-user", // replace later with Supabase user id
+      //   message,
+      //   language: "English",
+      // }),
+      body: JSON.stringify({
+      userId: "6a63ed00966ce66830d52cac",
+      message,
+      language: "English",
+    }),
+    });
+    const result = await res.json();
+    
+    // if (!res.ok) {
+    // throw new Error("Failed to contact AI.");
+    // }
+      if (!res.ok) {
+        console.error("Backend Error:", result);
+        throw new Error(result.message || "Failed to contact AI.");
+      }
 
-    setConversation((prev) => [...prev, userMessage]);
+    console.log("AI Response:", result);
 
-    setLoading(true);
-    setError(null);
+    // Backend now returns typed conversation items
+    setConversation((prev) => [
+      ...prev,
+      ...(result.conversation || []),
+    ]);
 
-    try {
-      // ---------- TEMPORARY MOCK ----------
-      // Replace this whole block with fetch("/api/ai")
-      // when your friend's backend is ready.
+    // IMPORTANT:
+    // Hero will use this later for speech synthesis.
+    return result;
 
-      await new Promise((resolve) => setTimeout(resolve, 1000));
+  } catch (err) {
+    console.error(err);
 
-      const mockResponse = [
-        {
-          id: crypto.randomUUID(),
-          type: "assistant",
-          data: {
-            text: `I understood that you want to ${message}.`,
-          },
+    setError(err.message);
+
+    setConversation((prev) => [
+      ...prev,
+      {
+        id: crypto.randomUUID(),
+        type: "assistant",
+        data: {
+          text: "Sorry, something went wrong.",
         },
-        {
-          id: crypto.randomUUID(),
-          type: "summary",
-          data: {
-            recipient: "Rahul Sharma",
-            amount: 500,
-            bank: "HDFC Bank",
-            note: "Demo Payment",
-          },
-        },
-        {
-          id: crypto.randomUUID(),
-          type: "risk",
-          data: {
-            score: 12,
-            checks: [
-              "Known recipient",
-              "Trusted device",
-              "Location verified",
-            ],
-          },
-        },
-        {
-          id: crypto.randomUUID(),
-          type: "authentication",
-          data: {
-            amount: 500,
-            method: "UPI PIN",
-          },
-        },
-      ];
+      },
+    ]);
 
-      setConversation((prev) => [...prev, ...mockResponse]);
-
-      // ---------- END MOCK ----------
-    } catch (err) {
-      console.error(err);
-
-      setError("Something went wrong.");
-
-      setConversation((prev) => [
-        ...prev,
-        {
-          id: crypto.randomUUID(),
-          type: "assistant",
-          data: {
-            text: "Sorry, something went wrong.",
-          },
-        },
-      ]);
-    } finally {
-      setLoading(false);
-    }
-  },[]);
+    return null;
+  } finally {
+    setLoading(false);
+  }
+}, []);
 
   const clearConversation = () => {
     setConversation([]);

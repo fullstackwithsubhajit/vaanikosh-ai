@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
-import dbConnect from "@/lib/dbConnect";
+// import dbConnect from "@/lib/dbConnect";
+import connectDB from "@/lib/db";
 
 import {
   evaluateRisk,
@@ -9,7 +10,8 @@ import {
 export async function POST(request) {
   try {
 
-    await dbConnect();
+    // await dbConnect();
+    await connectDB();
 
     const body = await request.json();
 
