@@ -7,8 +7,51 @@ import {
   Lock,
   ArrowRight,
 } from "lucide-react";
+import { useState } from "react";
+import PinVerificationCard from "./PinVerificationCard";
 
-export default function AuthenticationCard({ data = {} }) {
+
+export default function AuthenticationCard({
+  data = {},
+  onAuthenticate,
+}) {
+
+  const [loading, setLoading] = useState(false);
+  const [showPin, setShowPin] = useState(false);
+  
+const verify = async (pin) => {
+
+    if (loading) return;
+
+    setLoading(true);
+
+    try {
+
+        await onAuthenticate({
+
+            conversationId: data.conversationId,
+
+            authentication: {
+
+                ...(data.authentication ?? {
+                    amount: data.amount,
+                    method: data.method,
+                }),
+
+                pin,
+
+            },
+
+        });
+
+    } finally {
+
+        setLoading(false);
+
+    }
+
+};
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 15 }}
@@ -68,7 +111,7 @@ export default function AuthenticationCard({ data = {} }) {
           </p>
 
           <h2 className="mt-1 text-3xl font-bold text-white">
-            ₹{data.amount}
+            ₹{data.authentication?.amount ?? data.amount}
           </h2>
         </div>
 
@@ -78,7 +121,7 @@ export default function AuthenticationCard({ data = {} }) {
           </p>
 
           <p className="font-medium text-white">
-            {data.method || "UPI PIN"}
+            {data.authentication?.method || data.method || "UPI PIN"}
           </p>
         </div>
 
@@ -86,14 +129,58 @@ export default function AuthenticationCard({ data = {} }) {
 
       {/* Button */}
 
-      <button
-        className="mt-8 flex w-full items-center justify-center gap-3 rounded-2xl bg-sky-500 px-6 py-4 font-semibold text-slate-950 transition-all duration-300 hover:bg-sky-400 active:scale-[0.98]
-        "
-      >
-        Authenticate & Pay
+      {!showPin ? (
 
-        <ArrowRight size={18} />
-      </button>
+<button
+    disabled={loading || showPin}
+    onClick={() => {
+
+    if (loading || showPin) return;
+
+    setShowPin(true);
+
+}}
+  className="disabled:opacity-50 disabled:cursor-not-allowed mt-8 flex w-full items-center justify-center gap-3 rounded-2xl bg-sky-500 px-6 py-4 font-semibold text-slate-950 transition-all duration-300 hover:bg-sky-400"
+>
+  Authenticate & Pay
+
+  <ArrowRight size={18} />
+
+</button>
+
+) : (
+
+<PinVerificationCard
+
+    amount={
+        data.authentication?.amount ??
+        data.amount
+    }
+    
+    onVerify={
+      verify
+      // (pin) =>
+      //   onAuthenticate({
+
+      //       conversationId: data.conversationId,
+
+      //       authentication: {
+
+      //           ...(data.authentication ?? {
+      //               amount: data.amount,
+      //               method: data.method,
+      //           }),
+
+      //           pin,
+
+      //       },
+
+      //   })
+    }
+
+/>
+
+)}
     </motion.div>
   );
 }

@@ -86,15 +86,136 @@ export default function useConversation() {
   }
 }, []);
 
+
+const confirmPayment = useCallback(async ({
+  conversationId,
+  authentication,
+}) => {
+
+  setLoading(true);
+
+  try {
+
+    const res = await fetch("/api/ai", {
+
+      method: "POST",
+
+      headers: {
+        "Content-Type": "application/json",
+      },
+
+      body: JSON.stringify({
+
+        userId: "6a63ed00966ce66830d52cac",
+
+        conversationId,
+
+        confirmed: true,
+
+        authentication,
+
+      }),
+
+    });
+
+    const result = await res.json();
+
+    if (!res.ok) {
+      throw new Error(result.message);
+    }
+
+    console.log("Authentication Response:", result);
+
+    setConversation(prev => [
+      ...prev,
+      ...(result.conversation || []),
+    ]);
+
+    return result;
+
+  } catch (err) {
+
+    console.error(err);
+
+    setError(err.message);
+
+    return null;
+
+  } finally {
+
+    setLoading(false);
+
+  }
+
+}, []);
+
+const continueAfterWarning = useCallback((data) => {
+
+  setConversation(prev => [
+
+    ...prev,
+
+    {
+      id: crypto.randomUUID(),
+
+      type: "authentication",
+
+      ddata: {
+
+  authentication: {
+
+    amount: data.amount,
+
+    method: "UPI PIN",
+
+    recipient: data.recipient,
+
+    purpose: data.purpose,
+
+  },
+
+  conversationId: data.conversationId,
+
+},
+    },
+
+  ]);
+
+}, []);
+
+
+
+const cancelTransaction = useCallback(() => {
+
+  setConversation(prev => [
+
+    ...prev,
+
+    {
+      id: crypto.randomUUID(),
+
+      type: "assistant",
+
+      data: {
+        text: "Transaction cancelled. No money has been transferred.",
+      },
+    },
+
+  ]);
+
+}, []);
   const clearConversation = () => {
     setConversation([]);
   };
 
-  return {
-    conversation,
-    sendMessage,
-    clearConversation,
-    loading,
-    error,
-  };
+return {
+  conversation,
+  sendMessage,
+  confirmPayment,
+  continueAfterWarning,
+  cancelTransaction,
+  clearConversation,
+  loading,
+  error,
+};
 }

@@ -75,9 +75,13 @@ return (
     speak={speechSynthesis.speak}
 />
 
-    <ConversationFeed
-      conversation={conversation.conversation}
-    />
+   <ConversationFeed
+    conversation={conversation.conversation}
+    confirmPayment={conversation.confirmPayment}
+    continueAfterWarning={conversation.continueAfterWarning}
+    cancelTransaction={conversation.cancelTransaction}
+/>
+
   </>
 );
 }

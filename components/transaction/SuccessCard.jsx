@@ -4,7 +4,10 @@ import { motion } from "framer-motion";
 import { CircleCheckBig, ArrowUpRight } from "lucide-react";
 import { useEffect } from "react";
 
-export default function SuccessCard({ data }) {
+export default function SuccessCard({
+  data,
+  onDone = () => {},
+}) {
 
 
  useEffect(() => {

@@ -10,10 +10,14 @@ import RecipientSelectionCard from "../transaction/RecipientSelectionCard";
 import BalanceCard from "../transaction/BalanceCard";
 import HistoryCard from "../transaction/HistoryCard";
 import SuccessCard from "../transaction/SuccessCard";
-// import ScamWarningCard from "../transaction/ScamWarningCard";
+import ScamWarningCard from "../transaction/ScamWarningCard";
 
-export default function ConversationItem({ item }) {
-
+export default function ConversationItem({
+  item,
+  confirmPayment,
+  continueAfterWarning,
+  cancelTransaction,
+}) {
     switch (item.type) {
 
         case "user":
@@ -38,11 +42,27 @@ export default function ConversationItem({ item }) {
             return <RecipientSelectionCard data={item.data} />;
 
         case "authentication":
-            return <AuthenticationCard data={item.data} />;
+                return (
+                <AuthenticationCard
+                    data={item.data}
+                    onAuthenticate={() =>
+                    confirmPayment({
+                    conversationId: item.data.conversationId,
+                    authentication: item.data,
+                })
+            }
+        />
+    );
 
-        // case "scam":
-        //     return <ScamWarningCard data={item.data} />;
-        
+       case "scam":
+            return (
+            <ScamWarningCard
+                data={item.data}
+                onContinue={() => continueAfterWarning(item.data)}
+                onCancel={cancelTransaction}
+            />
+    );
+
         case "success":
             return <SuccessCard data={item.data} />;
 
