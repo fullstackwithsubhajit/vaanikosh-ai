@@ -19,19 +19,14 @@ import {
   updateConversationState,
 } from "./conversationService";
 
-
-
 export async function processAI({
-
     userId,
-
     message,
-
     language = "English",
-
-    conversationId = null
-
-}) {
+    conversationId = null,
+    confirmed = false,
+    authentication = null,
+}){
 
     /*
     --------------------------------
@@ -62,6 +57,116 @@ export async function processAI({
         }
 
     }
+
+//     if (confirmed) {
+
+//     const backendResult = await dispatchAction(
+
+//         "CONFIRM_PAYMENT",
+
+//         authentication,
+
+//         userId
+
+//     );
+
+//     return {
+
+//         success: true,
+
+//         action: backendResult.action,
+
+//         conversation: [
+
+//             {
+
+//                 type: "success",
+
+//                 data: {
+
+//                     recipient: backendResult.recipient.name,
+
+//                     amount: backendResult.transaction.amount,
+
+//                     reference:
+//                         backendResult.transaction.referenceNumber,
+
+//                     time: new Date().toLocaleString(),
+
+//                     balance:
+//                         backendResult.remainingBalance,
+
+//                 },
+
+//             },
+
+//         ],
+
+//     };
+
+// }
+
+/*
+--------------------------------
+Authentication Confirmation
+--------------------------------
+*/
+
+if (confirmed) {
+
+    const state = conversation.state;
+
+    const entities = state.collectedEntities;
+
+    const backendResult = await dispatchAction(
+        "CONFIRM_PAYMENT",
+        {
+            recipient: entities.recipient,
+            amount: entities.amount,
+            purpose: entities.purpose,
+        },
+        userId
+    );
+
+    const finalReply = await generateReply({
+        language,
+        action: backendResult.action,
+        data: backendResult,
+    });
+
+    await addMessage(
+        conversation._id,
+        "AI",
+        finalReply
+    );
+
+    await updateConversationState(
+    conversation._id,
+    {
+        ...state,
+        completed: true,
+        currentIntent: null,
+    }
+);
+
+    return {
+        success: true,
+        conversationId: conversation._id,
+        action: backendResult.action,
+        conversation: [
+            {
+                type: "assistant",
+                data: {
+                    text: finalReply,
+                },
+            },
+           {
+                 type: "success",
+                data: backendResult.data,
+            },
+        ],
+    };
+}
 
     /*
     --------------------------------
@@ -126,16 +231,19 @@ export async function processAI({
     --------------------------------
     */
 
-    const workflow = determineNextAction(
-        updatedState,
-        intent
-    );
+   const workflow = determineNextAction(
+    updatedState,
+    intent,
+    message
+);
 
     /*
     --------------------------------
     Execute Intent
     --------------------------------
     */
+    console.log("Workflow:", workflow);
+    console.log("Payload:", workflow.payload);
 
     const backendResult = await dispatchAction(
         workflow.action,
@@ -211,10 +319,54 @@ if (backendResult.action === "SHOW_TRANSACTION_SUMMARY") {
     data: backendResult.data.risk,
   });
 
-  conversationItems.push({
-    type: "authentication",
-    data: backendResult.data.authentication,
-  });
+  const risk = backendResult.data.risk;
+
+//   conversationItems.push({
+//   type: "authentication",
+//   data: {
+//     ...backendResult.data.authentication,
+//     conversationId: conversation._id,
+//     recipient: backendResult.data.summary.recipient,
+//     amount: backendResult.data.summary.amount,
+//     purpose: backendResult.data.summary.note,
+//   },
+// });
+
+if (risk.level === "LOW") {
+
+    conversationItems.push({
+        type: "authentication",
+        data: {
+            ...backendResult.data.authentication,
+            conversationId: conversation._id,
+            recipient: backendResult.data.summary.recipient,
+            amount: backendResult.data.summary.amount,
+            purpose: backendResult.data.summary.note,
+        },
+    });
+
+}
+else {
+
+    conversationItems.push({
+        type: "scam",
+        data: {
+            risk,
+
+            canContinue: risk.level === "MEDIUM",
+
+            conversationId: conversation._id,
+
+            recipient: backendResult.data.summary.recipient,
+
+            amount: backendResult.data.summary.amount,
+
+            purpose: backendResult.data.summary.note,
+        },
+    });
+
+}
+
 }
 
 if (backendResult.action === "PAYMENT_SUCCESS") {
@@ -229,6 +381,42 @@ if (backendResult.action === "SHOW_BALANCE") {
     type: "balance",
     data: backendResult.data,
   });
+}
+
+if (backendResult.action === "SHOW_SCAM_WARNING") {
+
+  conversationItems.push({
+
+    type: "scam",
+
+    data: {
+
+      ...backendResult.data,
+
+      conversationId: conversation._id,
+
+    },
+
+  });
+
+}
+
+if (backendResult.action === "BLOCK_TRANSACTION") {
+
+  conversationItems.push({
+
+    type: "scam",
+
+    data: {
+
+      ...backendResult.data,
+
+      conversationId: conversation._id,
+
+    },
+
+  });
+
 }
 
 /*

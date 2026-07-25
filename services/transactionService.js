@@ -83,7 +83,7 @@ function checkBalance(sender, amount) {
 
     }
 
-    console.log("WalletBalance:", sender.statistics?.WalletBalance);
+    console.log("walletBalance:", sender.statistics?.walletBalance);
 
     // if (sender.wallet.balance < amount) {
 
@@ -141,17 +141,20 @@ async function createTransaction({
 
         amount,
 
-        transcript,
+       voiceTranscript: transcript,
 
-        aiDecision: {
+       aiDecision:
+            risk.level === "HIGH"
+                ? "BLOCK"
+                : risk.level === "MEDIUM"
+                ? "CONFIRM"
+                : "ALLOW",
 
-            riskScore: risk.score,
-
-            riskLevel: risk.level,
-
-            reasons: risk.reasons
-
-        },
+        risk: {
+            score: risk.score,
+            level: risk.level,
+            reasons: risk.reasons,
+}, 
 
         status: "PENDING",
 
@@ -290,19 +293,54 @@ export async function processPayment({
 
     });
 
-    if (risk.level === "HIGH") {
+if (risk.level === "BLOCK") {
 
-        return {
+    return {
 
-            success: false,
+        success: false,
 
-            action: "BLOCK_TRANSACTION",
+        action: "BLOCK_TRANSACTION",
 
-            risk
+        data: {
 
-        };
+            risk,
 
-    }
+            recipient: savedRecipient.name,
+
+            amount,
+
+            canContinue: false,
+
+        },
+
+    };
+
+}
+
+if (risk.level === "HIGH") {
+
+    return {
+
+        success: true,
+
+        action: "SHOW_SCAM_WARNING",
+
+        data: {
+
+            risk,
+
+            recipient: savedRecipient.name,
+
+            amount,
+
+            canContinue: true,
+
+        },
+
+    };
+
+}
+
 
     const transaction = await createTransaction({
 
@@ -341,53 +379,65 @@ export async function processPayment({
     );
 
     return {
+    success: true,
 
-        success: true,
+    action: "PAYMENT_SUCCESS",
 
-        action: "PAYMENT_SUCCESS",
+    data: {
+        recipient: savedRecipient.name,
 
-        transaction,
+        amount,
 
-        recipient: {
+        reference: transaction.referenceNumber,
 
-            id: savedRecipient._id,
+        time: new Date().toLocaleTimeString(),
 
-            name: savedRecipient.name,
+        balance: sender.statistics.walletBalance,
 
-            nickname: savedRecipient.nickname,
+        risk,
+    },
+};
 
-            bank: savedRecipient.bankName,
+    // return {
 
-            upiId: savedRecipient.upiId,
+    //     success: true,
 
-            accountNumber: savedRecipient.accountNumber,
+    //     action: "PAYMENT_SUCCESS",
 
-            ifscCode: savedRecipient.ifscCode,
+    //     transaction,
 
-            trusted: savedRecipient.isTrusted
+    //     recipient: {
 
-        },
+    //         id: savedRecipient._id,
 
-        // remainingBalance:
+    //         name: savedRecipient.name,
 
-        //     sender.wallet.balance,
+    //         nickname: savedRecipient.nickname,
+
+    //         bank: savedRecipient.bankName,
+
+    //         upiId: savedRecipient.upiId,
+
+    //         accountNumber: savedRecipient.accountNumber,
+
+    //         ifscCode: savedRecipient.ifscCode,
+
+    //         trusted: savedRecipient.isTrusted
+
+    //     },
+
+    //     // remainingBalance:
+
+    //     //     sender.wallet.balance,
         
-        remainingBalance:
-            sender.statistics.walletBalance,
+    //     remainingBalance:
+    //         sender.statistics.walletBalance,
 
-            risk
+    //         risk
 
-    };
+    // };
 
 
-    await balanceService.debit(
-    sender._id,
-    amount
-    );
-
-    await balanceService.updateWalletStats(
-        sender._id,
-        amount
-    );
+   
 
 }

@@ -3,7 +3,12 @@
 import ConversationItem from "./ConversationItem";
 import { useEffect, useRef } from "react";
 
-export default function ConversationFeed({ conversation = [] }) {
+export default function ConversationFeed({
+  conversation = [],
+  confirmPayment,
+  continueAfterWarning,
+  cancelTransaction,
+}) {
 
   const bottomRef = useRef(null);
 
@@ -29,10 +34,13 @@ export default function ConversationFeed({ conversation = [] }) {
           </div>
         ) : (
           conversation.map((item, index) => (
-            <ConversationItem
-              key={item.id || index}
-              item={item}
-            />
+         <ConversationItem
+            key={item.id || index}
+            item={item}
+            confirmPayment={confirmPayment}
+            continueAfterWarning={continueAfterWarning}
+            cancelTransaction={cancelTransaction}
+              />
           ))
         )}
         
